@@ -11,15 +11,7 @@ resource "aws_lb" "alb" {
   security_groups    = var.security_groups
   subnets            = var.subnets
 
-  enable_deletion_protection = true
-
-  access_logs {
-    bucket  = aws_s3_bucket.lb_logs.bucket
-    prefix  = "test-lb"
-    enabled = true
-  }
-
   tags = {
-    Environment = "production"
+    Environment = "dev"
   }
 }

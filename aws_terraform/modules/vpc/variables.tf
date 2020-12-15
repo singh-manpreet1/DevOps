@@ -1,6 +1,6 @@
 variable "vpc_name" {
     type = string
-    default = "vpc_main"
+    default = "Main_VPC"
 }
 
 variable "vpc_cidr" {

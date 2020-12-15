@@ -6,5 +6,5 @@ variable "vpc_id" {
 
 variable "name" {
     type = string
-    default = "internet gateway"
+    default = "Dev_Internet_Gateway"
 }

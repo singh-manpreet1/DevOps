@@ -6,7 +6,7 @@ provider "aws" {
 
 
 
-resource "aws_lb_listener" "front_end" {
+resource "aws_lb_listener" "Listener" {
   load_balancer_arn = var.load_balancer_arn
   port              = var.port
   protocol          = var.protocol

@@ -4,5 +4,5 @@ variable "eip_id" {}
 
 variable "name" {
     type = string 
-    default = "Nat Gateway" 
+    default = "Main_Nat_Gateway" 
 }

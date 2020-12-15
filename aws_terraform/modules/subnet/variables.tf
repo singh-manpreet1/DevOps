@@ -1,15 +1,20 @@
 variable "vpc_id" {
-    type = string
-    default = "vpc_main"
+  type = string
+  description = "ID of VPC"
 }
-
-variable "subnet_cidr_block" {
-    type = string
-    default = "10.0.1.0/24"
+variable "cidr_block" {
+  type = string
+  description = "subnet CIDR block"
 }
-
 variable "name" {
-    type = string
-    default = "subnet"
+  type = string
+  description = "Name of the Subnet"
 }
-
+variable "availability_zone_id" {
+  type = string
+  description = "The ID of the AVialability Zone to place the subnet in"
+}
+variable "map_public_ip_on_launch" {
+  type = bool
+  description = "Whether or not to assign a public IP to instances that reside in the subnet"
+}
