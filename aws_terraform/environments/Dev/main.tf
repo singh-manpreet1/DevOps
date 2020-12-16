@@ -63,10 +63,10 @@ module "route_1_sub1" {
 module "route_table2" {
     source = "../../modules/route_table"
     vpc_id = module.VPC.vpc_id
-    name = "Private Route Table"
+    name = "Private_Route_Table"
 }
 
-//858-947-4231
+
 
 module "route_table_private_sub_assoc" {
   source = "../../modules/route_table_assoc"
@@ -251,10 +251,19 @@ module "Bastion_Jumphost" {
 
 }
 
+# module "Dev_Webserver" {
+#   source = "../../modules/ec2"
+#   subnet_id = module.private_subnet.subnet_id
+#   name = "webserver-${count.index + 1}"
+#   instance_type = "t2.micro"
+#   vpc_security_group_ids = [module.server_security_group.security_group_id]
+#   key_name = "jumphost"
+# }
+
 module "WebServer1_Dev" {
   source = "../../modules/ec2_ssh"
   subnet_id = module.private_subnet.subnet_id
-  name = "My_WebServer1_Dev"
+  name = "WebServer1_Dev"
   instance_type = "t2.micro"
   vpc_security_group_ids = [module.server_security_group.security_group_id]
   key_name = "jumphost"
@@ -263,7 +272,7 @@ module "WebServer1_Dev" {
 module "WebServer2_Dev" {
   source = "../../modules/ec2_ssh"
   subnet_id = module.private_subnet.subnet_id
-  name = "My WebServer 2 Dev main"
+  name = "WebServer2_Dev"
   instance_type = "t2.micro"
   vpc_security_group_ids = [module.server_security_group.security_group_id]
   key_name = "jumphost"
@@ -272,7 +281,7 @@ module "WebServer2_Dev" {
 module "WebServer3_Dev" {
   source = "../../modules/ec2_ssh"
   subnet_id = module.private_subnet.subnet_id
-  name = "My WebServer 3 Dev main"
+  name = "WebServer3_Dev"
   instance_type = "t2.micro"
   vpc_security_group_ids = [module.server_security_group.security_group_id]
   key_name = "jumphost"
@@ -290,6 +299,7 @@ module "Alb_Target_Group" {
   health_check_protocol = "HTTP"
 } 
 
+// number of atttachments depends on len of list
 module "Alb_Target_Attachment1" {
   source = "../../modules/target_group_assoc"
   target_group_arn = module.Alb_Target_Group.target_group_arn

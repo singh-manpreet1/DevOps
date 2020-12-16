@@ -39,5 +39,6 @@ resource "aws_instance" "main" {
   key_name = var.key_name
   tags = {
     Name = var.name
+    Environment = "dev"
   }
 }
