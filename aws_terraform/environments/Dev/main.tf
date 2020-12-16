@@ -251,14 +251,16 @@ module "Bastion_Jumphost" {
 
 }
 
-# module "Dev_Webserver" {
-#   source = "../../modules/ec2"
-#   subnet_id = module.private_subnet.subnet_id
-#   name = "webserver-${count.index + 1}"
-#   instance_type = "t2.micro"
-#   vpc_security_group_ids = [module.server_security_group.security_group_id]
-#   key_name = "jumphost"
-# }
+module "Dev_Webserver" {
+  source = "../../modules/ec2"
+  subnet_id = module.private_subnet.subnet_id
+  name = "dev_webserver"
+  instance_type = "t2.micro"
+  vpc_security_group_ids = [module.server_security_group.security_group_id]
+  key_name = "jumphost"
+  amount = 3 
+
+}
 
 module "WebServer1_Dev" {
   source = "../../modules/ec2_ssh"
@@ -303,21 +305,21 @@ module "Alb_Target_Group" {
 module "Alb_Target_Attachment1" {
   source = "../../modules/target_group_assoc"
   target_group_arn = module.Alb_Target_Group.target_group_arn
-  target_id = module.WebServer1_Dev.instance_id
+  target_id = module.Dev_Webserver.instances_id[0]
   port = 80
 }
 
 module "Alb_Target_Attachment2" {
   source = "../../modules/target_group_assoc"
   target_group_arn = module.Alb_Target_Group.target_group_arn
-  target_id = module.WebServer2_Dev.instance_id
+  target_id = module.Dev_Webserver.instances_id[1]
   port = 80
 }
 
 module "Alb_Target_Attachment3" {
   source = "../../modules/target_group_assoc"
   target_group_arn = module.Alb_Target_Group.target_group_arn
-  target_id = module.WebServer3_Dev.instance_id
+  target_id = module.Dev_Webserver.instances_id[2]
   port = 80
 }
 

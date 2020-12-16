@@ -39,6 +39,6 @@ resource "aws_instance" "main" {
   vpc_security_group_ids = var.vpc_security_group_ids
   key_name = var.key_name
   tags = {
-    Name = var.name
+    Name = "${var.name}-${count.index + 1}"
   }
 }
