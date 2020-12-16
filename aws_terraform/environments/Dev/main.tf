@@ -108,6 +108,7 @@ module "ALB_Security_Group_Rule1" {
   to_port = 80
   protocol = "tcp"
   cidr_blocks = ["0.0.0.0/0"]
+  ipv6_cidr_blocks = ["::/0"]
   security_group_id = module.ALB_security_group.security_group_id
 
 }
@@ -119,8 +120,20 @@ module "ALB_Security_Group_Rule2" {
   to_port = 443
   protocol = "tcp"
   cidr_blocks = ["0.0.0.0/0"]
+  ipv6_cidr_blocks = ["::/0"]
   security_group_id = module.ALB_security_group.security_group_id
 
+}
+
+module "ALB_security_group_rule_3" {
+  source = "../../modules/security_group_rule"
+  type = "egress"
+  from_port = 0
+  to_port = 65535
+  protocol = "all"
+  security_group_id = module.ALB_security_group.security_group_id
+  cidr_blocks = ["0.0.0.0/0"]
+  ipv6_cidr_blocks = ["::/0"]
 }
 
 module "server_security_group" {
@@ -148,7 +161,37 @@ module "server_security_group_rule2" {
   to_port = 22
   protocol = "tcp"
   security_group_id = module.server_security_group.security_group_id
+  source_security_group_id = module.ALB_security_group.security_group_id
+}
+
+module "server_security_group_rule3" {
+  source = "../../modules/server_sg_rule"
+  type = "ingress"
+  from_port = 80
+  to_port = 80
+  protocol = "tcp"
+  security_group_id = module.server_security_group.security_group_id
   source_security_group_id = module.Jumphost_security_group.security_group_id
+}
+
+module "server_security_group_rule4" {
+  source = "../../modules/server_sg_rule"
+  type = "ingress"
+  from_port = 22
+  to_port = 22
+  protocol = "tcp"
+  security_group_id = module.server_security_group.security_group_id
+  source_security_group_id = module.Jumphost_security_group.security_group_id
+}
+
+module "server_security_group_rule5" {
+  source = "../../modules/security_group_rule"
+  type = "egress"
+  from_port = 0
+  to_port = 65535
+  protocol = "all"
+  security_group_id = module.server_security_group.security_group_id
+  cidr_blocks = ["0.0.0.0/0"]
 }
 
 
@@ -168,6 +211,26 @@ module "bastion_sg_rule1" {
   protocol = "tcp"
   security_group_id = module.Jumphost_security_group.security_group_id
   cidr_blocks = ["73.150.47.189/32"]
+}
+
+module "bastion_sg_rule_2" {
+  source = "../../modules/security_group_rule"
+  type = "egress"
+  from_port = 0
+  to_port = 65535
+  protocol = "all"
+  security_group_id = module.Jumphost_security_group.security_group_id
+  cidr_blocks = ["0.0.0.0/0"]
+}
+
+module "bastion_sg_rule_3" {
+  source = "../../modules/server_sg_rule"
+  type = "ingress"
+  from_port = 22
+  to_port = 22
+  protocol = "tcp"
+  security_group_id = module.Jumphost_security_group.security_group_id
+  source_security_group_id = module.server_security_group.security_group_id
 }
 
 module "key_pair" {
@@ -216,10 +279,13 @@ module "WebServer3_Dev" {
 
 module "Alb_Target_Group" {
   source = "../../modules/target_group"
+  name = "server-target-group"
   port = 80  //port which target is listening on
   protocol = "HTTP"  //protocol to send traffic to target
   target_type = "instance"
   vpc_id = module.VPC.vpc_id
+  load_balancing_algorithm_type = "round_robin"
+  health_check_protocol = "HTTP"
 } 
 
 module "Alb_Target_Attachment1" {
@@ -250,9 +316,11 @@ module "Application_Load_Balancer" {
   load_balancer_type = "application"
   security_groups = [module.ALB_security_group.security_group_id]
   subnets = [module.public_subnet.subnet_id,module.private_subnet.subnet_id]
+  log_bucket = module.s3.bucket_name
+  s3_prefix = "Logs_ALB"
 }
 
-module "alb_listner" {
+module "alb_listner" {  
   source = "../../modules/alb_listener"
   load_balancer_arn = module.Application_Load_Balancer.alb_arn
   port = 80
@@ -260,6 +328,13 @@ module "alb_listner" {
   type= "forward"
   target_group_arn = module.Alb_Target_Group.target_group_id
   
+}
+
+module "s3" {
+  source = "../../modules/s3"
+  bucket = "dev-alb-logs-bucket"
+  acl = "public-read-write"
+  name = "Dev-Alb-logs-bucket"
 }
 
 

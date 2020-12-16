@@ -11,6 +11,12 @@ resource "aws_lb" "alb" {
   security_groups    = var.security_groups
   subnets            = var.subnets
 
+  access_logs {
+    bucket = var.log_bucket
+    prefix = var.s3_prefix
+    enabled = true
+  }
+
   tags = {
     Environment = "dev"
   }
