@@ -14,13 +14,22 @@ terraform {
 }
 
 data "aws_ami" "Red_Hat" {
-  owners = ["amazon"]
+  owners = ["309956199498"]
   most_recent = true
   filter {
     name = "virtualization-type"
     values = ["hvm"]
   }
+  filter {
+    name = "name"
+    values = ["*RHEL*"]
+  }
+  filter {
+    name = "architecture"
+    values = ["x86_64"]
+  }
 }
+
 
 resource "aws_instance" "main" {
   ami = data.aws_ami.Red_Hat.id
