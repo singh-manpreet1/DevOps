@@ -9,3 +9,6 @@ variable "key_name" {}
 variable "amount" {
   type = number
 }
+
+variable "iam_instance_profile" {}
+  

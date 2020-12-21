@@ -24,7 +24,7 @@ module "public_subnet" {
   source = "../../modules/subnet"
   vpc_id = module.VPC.vpc_id
   cidr_block = "10.12.1.0/24"
-  name = "public_subnet"
+  name = "dev_public_subnet"
   availability_zone_id = module.availability_zones.availability_zones[0]
   map_public_ip_on_launch = true
 }
@@ -34,7 +34,7 @@ module "private_subnet" {
   source = "../../modules/subnet"
   vpc_id = module.VPC.vpc_id
   cidr_block = "10.12.2.0/24"
-  name = "private-subnet"
+  name = "dev_private-subnet"
   availability_zone_id = module.availability_zones.availability_zones[1]
   map_public_ip_on_launch = false
 }
@@ -42,7 +42,7 @@ module "private_subnet" {
 module "route_table1" {
     source = "../../modules/route_table"
     vpc_id = module.VPC.vpc_id
-    name = "Public_Route_Table"
+    name = "dev_public_rt"
 }
 
 module "route_table_public_sub_assoc" {
@@ -63,7 +63,7 @@ module "route_1_sub1" {
 module "route_table2" {
     source = "../../modules/route_table"
     vpc_id = module.VPC.vpc_id
-    name = "Private_Route_Table"
+    name = "dev_private_rt"
 }
 
 
@@ -97,7 +97,7 @@ module "elastic_ip" {
 
 module "ALB_security_group" {
   source = "../../modules/security_group"
-  name = "ALB_Security_Group"
+  name = "dev_alb_sg"
   description = "security group for application load balancer"
   vpc_id = module.VPC.vpc_id
   
@@ -140,7 +140,7 @@ module "ALB_security_group_rule_3" {
 
 module "server_security_group" {
   source = "../../modules/security_group"
-  name = "Server_Security_Group"
+  name = "dev_server_sg"
   description = "Security group for servers in private subnet"
   vpc_id = module.VPC.vpc_id
   
@@ -199,7 +199,7 @@ module "server_security_group_rule5" {
 
 module "Jumphost_security_group" {
   source = "../../modules/security_group"
-  name = "Jumphost_Security_Group"
+  name = "dev_jumphost_sg"
   description = "security group for jumphost"
   vpc_id = module.VPC.vpc_id
   
@@ -244,55 +244,29 @@ module "key_pair" {
 module "Bastion_Jumphost" {
   source = "../../modules/ec2_ssh"
   subnet_id = module.public_subnet.subnet_id
-  name = "Bastion_Host"
+  name = "dev_Bastion_Host"
   instance_type = "t2.micro"
   vpc_security_group_ids = [module.Jumphost_security_group.security_group_id]
   key_name = "jumphost"
 
 }
 
-module "Dev_Webserver" {
-  source = "../../modules/ec2"
-  subnet_id = module.private_subnet.subnet_id
-  name = "dev_webserver"
-  instance_type = "t2.micro"
-  vpc_security_group_ids = [module.server_security_group.security_group_id]
-  key_name = "jumphost"
-  amount = 3 
+ module "Dev_Webserver" {
+   source = "../../modules/ec2"
+   subnet_id = module.private_subnet.subnet_id
+   name = "dev_webserver"
+   instance_type = "t2.micro"
+   vpc_security_group_ids = [module.server_security_group.security_group_id]
+   key_name = "jumphost"
+   amount = 3 
+   iam_instance_profile = module.iam_instance_profile.name
 
-}
+ }
 
-module "WebServer1_Dev" {
-  source = "../../modules/ec2_ssh"
-  subnet_id = module.private_subnet.subnet_id
-  name = "WebServer1_Dev"
-  instance_type = "t2.micro"
-  vpc_security_group_ids = [module.server_security_group.security_group_id]
-  key_name = "jumphost"
-}
-
-module "WebServer2_Dev" {
-  source = "../../modules/ec2_ssh"
-  subnet_id = module.private_subnet.subnet_id
-  name = "WebServer2_Dev"
-  instance_type = "t2.micro"
-  vpc_security_group_ids = [module.server_security_group.security_group_id]
-  key_name = "jumphost"
-
-}
-module "WebServer3_Dev" {
-  source = "../../modules/ec2_ssh"
-  subnet_id = module.private_subnet.subnet_id
-  name = "WebServer3_Dev"
-  instance_type = "t2.micro"
-  vpc_security_group_ids = [module.server_security_group.security_group_id]
-  key_name = "jumphost"
-
-}
 
 module "Alb_Target_Group" {
   source = "../../modules/target_group"
-  name = "server-target-group"
+  name = "dev-server-tg"
   port = 80  //port which target is listening on
   protocol = "HTTP"  //protocol to send traffic to target
   target_type = "instance"
@@ -301,27 +275,13 @@ module "Alb_Target_Group" {
   health_check_protocol = "HTTP"
 } 
 
-// number of atttachments depends on len of list
-module "Alb_Target_Attachment1" {
+module "Alb_Target_Attachment" {
   source = "../../modules/target_group_assoc"
   target_group_arn = module.Alb_Target_Group.target_group_arn
-  target_id = module.Dev_Webserver.instances_id[0]
+  target_ids = module.Dev_Webserver.instances_id
   port = 80
 }
 
-module "Alb_Target_Attachment2" {
-  source = "../../modules/target_group_assoc"
-  target_group_arn = module.Alb_Target_Group.target_group_arn
-  target_id = module.Dev_Webserver.instances_id[1]
-  port = 80
-}
-
-module "Alb_Target_Attachment3" {
-  source = "../../modules/target_group_assoc"
-  target_group_arn = module.Alb_Target_Group.target_group_arn
-  target_id = module.Dev_Webserver.instances_id[2]
-  port = 80
-}
 
 module "Application_Load_Balancer" {
   source = "../../modules/alb"
@@ -349,7 +309,63 @@ module "s3" {
   bucket = "dev-alb-logs-bucket"
   acl = "public-read-write"
   name = "Dev-Alb-logs-bucket"
+
 }
+
+module "ec2_to_s3_policy" {
+  source = "../../modules/IAM_policy"
+  name = "ec2_to_s3"
+  description = "Gives EC2 instances  acess to S3 Buckets"
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": ["s3:*"],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ]
+}
+  EOF
+}
+
+module "ec2_to_s3_role" {
+  source = "../../modules/IAM_role"
+  name = "ec2_to_s3_access"
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+  EOF
+}
+
+module "ec2_to_s3_policy_attachment" {
+  source = "../../modules/IAM_policy_attach"
+  role = module.ec2_to_s3_role.role_name
+  policy_arn = module.ec2_to_s3_policy.policy_arn
+}
+
+module "iam_instance_profile" {
+  source = "../../modules/IAM_instance"
+  name = "dev_ec2_s3_instance"
+  role = module.ec2_to_s3_role.role_name
+}
+
+
+
+
+
 
 
 
