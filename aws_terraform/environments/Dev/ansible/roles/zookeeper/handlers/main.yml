@@ -1,0 +1,14 @@
+---
+# handlers file for zookeeper
+
+- name: Daemon Reload
+  command: /usr/bin/systemctl daemon-reload
+  become: yes
+  become_user: root
+
+
+
+- name: Restart Zookeeper Service
+  service:
+    name: zookeeper
+    state: restarted

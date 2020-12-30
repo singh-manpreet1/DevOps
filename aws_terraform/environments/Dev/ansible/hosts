@@ -1,0 +1,14 @@
+[kafka]
+kafka1
+kafka2
+
+[webservers]
+webserver1
+webserver2
+webserver3
+
+[bastion]
+bastion
+
+[zookeeper]
+zookeeper

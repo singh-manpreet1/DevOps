@@ -1,0 +1,19 @@
+---
+# handlers file for kafka
+
+- name: Restart Producer Service
+  service:
+    name: producer
+    state: restarted
+    enabled: yes
+
+- name: Daemon Reload
+  command: /usr/bin/systemctl daemon-reload
+  become: yes
+  become_user: root
+
+- name: Restart kafka Service
+  service:
+    name: kafka
+    state: restarted
+    enabled: yes

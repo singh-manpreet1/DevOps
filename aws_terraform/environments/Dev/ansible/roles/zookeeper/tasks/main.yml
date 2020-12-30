@@ -1,0 +1,55 @@
+---
+# tasks file for zookeeper
+
+- name: Yum - Update Instance
+  yum:
+    name: "*"
+    state: latest
+    update_only: yes
+
+- name: Yum - Install Dependency
+  yum:
+    name:
+        - git
+        - wget
+        - go
+
+- name: Command - Enable Java Dependency
+  command: /usr/bin/amazon-linux-extras enable corretto8
+
+- name: Yum - Install Java 
+  yum:
+    name: java-1.8.0-amazon-corretto
+    state: present
+
+- name: Stat - Check for Kakfa
+  stat:
+    path: /home/ec2-user/kafka/kafka_2.13-2.7.0.tgz
+  register: kafkaFile
+
+- name: File - Create Directory
+  file:
+    path: /home/ec2-user/kafka
+    state: directory
+
+- name: Get_Url - Download kafka
+  get_url:
+    url: https://mirror.olnevhost.net/pub/apache/kafka/2.7.0/kafka_2.13-2.7.0.tgz
+    dest: /home/ec2-user/kafka
+  when: kafkaFile.stat.exists == False
+
+- name: Command - Unzip kafka file
+  command:
+    cmd: /usr/bin/tar -xvf kafka_2.13-2.7.0.tgz
+    chdir: /home/ec2-user/kafka
+  when: kafkaFile.stat.exists == False
+
+- name: Copy - Zookeeper Service
+  copy:
+    src: zookeeper.service
+    dest: /etc/systemd/system/zookeeper.service
+  notify:
+    - Daemon Reload
+    - Restart Zookeeper Service
+
+

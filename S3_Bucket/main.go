@@ -10,7 +10,6 @@ import (
 )
 
 const (
-	//Region
 	REGION = "us-east-1"
 )
 
@@ -57,7 +56,7 @@ func createS3Bucket(sess *session.Session) string {
 }
 
 func main() {
-	// Initialize a session to  load credentials from the shared credentials file ~/.aws/credentials.
+	// Initialize a session to  load credentials
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String("us-east-1")},
 	)
@@ -66,6 +65,6 @@ func main() {
 	}
 
 	listS3Buckets(sess)
-	//createS3Bucket(sess)
+	createS3Bucket(sess)
 
 }

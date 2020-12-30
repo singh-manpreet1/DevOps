@@ -15,4 +15,8 @@ variable "load_balancing_algorithm_type" {
 variable "health_check_protocol" {
   
 }
+
+variable "path" {
+  
+}
   

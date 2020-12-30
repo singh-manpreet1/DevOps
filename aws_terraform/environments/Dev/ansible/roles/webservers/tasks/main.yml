@@ -1,0 +1,88 @@
+---
+# tasks file for webservers
+- name: Yum - Update Instance
+  yum:
+    name: "*"
+    state: latest
+    update_only: yes
+
+- name: Yum - Install dependency
+  yum: 
+    name:
+        - git
+        - wget
+        - go
+
+- name: Enable Nginx
+  command: /usr/bin/amazon-linux-extras enable nginx1
+
+- name: Command -- Install Nginx
+  command: /usr/bin/amazon-linux-extras install nginx1 -y
+
+
+- name: Copy -- Server 1 index.html 
+  copy:
+    src: index1.html
+    dest: /usr/share/nginx/html/index.html
+  when: webserver_num == 1
+  notify:
+    - Restart Nginx Service
+
+
+- name: Copy -- Server 2 index.html 
+  copy:
+    src: index2.html
+    dest: /usr/share/nginx/html/index.html
+  when: webserver_num == 2
+  notify:
+    - Restart Nginx Service
+
+- name: Copy -- Server 3 index.html
+  copy:
+    src: index3.html
+    dest: /usr/share/nginx/html/index.html
+  when: webserver_num == 3
+  notify:
+    - Restart Nginx Service
+
+- name: Command -- Install Go Libraries
+  command:
+    cmd: /usr/bin/go get -u -v gopkg.in/confluentinc/confluent-kafka-go.v1/kafka
+    chdir: /home/ec2-user
+
+- name: Command -- Install Go Libraries
+  command:
+    cmd: /usr/bin/go get -u -v github.com/gorilla/mux
+    chdir: /home/ec2-user
+
+- name: Copy -- Overwrite the Server 1 consumer.go file
+  copy:
+    src: consumer.go
+    dest: /home/ec2-user/consumer.go
+  when: webserver_num == 1
+  notify:
+    - Build Consumer Go Binary
+
+- name: Copy -- Overwrite the Server 2 consumer.go file
+  copy:
+    src: /Users/manpreetsingh/desktop/go-kafka/consumer2.go
+    dest: /home/ec2-user/consumer.go
+  when: webserver_num == 2
+  notify:
+    - Build Consumer Go Binary
+
+- name: Copy -- Overwrite the Server 3 consumer.go file
+  copy:
+    src: /Users/manpreetsingh/desktop/go-kafka/consumer.go
+    dest: /home/ec2-user/consumer.go
+  when: webserver_num == 3
+  notify:
+    - Build Consumer Go Binary
+
+- name: Copy -- the consumer servie file
+  copy:
+    src: consumer.service
+    dest: /etc/systemd/system/consumer.service
+  notify:
+    - Reload Daemons
+    - Restart Consumer Service

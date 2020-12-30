@@ -14,7 +14,7 @@ terraform {
 }
 
 data "aws_ami" "Red_Hat" {
-  owners = ["309956199498"]
+  owners = ["amazon"]
   most_recent = true
   filter {
     name = "virtualization-type"
@@ -22,7 +22,7 @@ data "aws_ami" "Red_Hat" {
   }
   filter {
     name = "name"
-    values = ["*RHEL*"]
+    values = ["amzn2-ami*"]
   }
   filter {
     name = "architecture"
@@ -39,6 +39,9 @@ resource "aws_instance" "main" {
   vpc_security_group_ids = var.vpc_security_group_ids
   key_name = var.key_name
   iam_instance_profile = var.iam_instance_profile
+  root_block_device {
+    volume_size = 8
+  }
   tags = {
     Name = "${var.name}-${count.index + 1}"
   }

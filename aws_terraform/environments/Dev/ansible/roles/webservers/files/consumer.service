@@ -1,0 +1,6 @@
+[Unit]
+Description=Kafka Consumer Service
+
+[Service]
+ExecStart=/home/ec2-user/consumer
+WorkingDirectory=/home/ec2-user/

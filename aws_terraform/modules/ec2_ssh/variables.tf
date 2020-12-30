@@ -15,3 +15,7 @@ variable "name" {
 variable "key_name" {
   
 }
+variable "iam_instance_profile" {
+    default = ""
+  
+}
