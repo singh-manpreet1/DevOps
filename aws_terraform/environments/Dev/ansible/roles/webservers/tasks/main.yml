@@ -12,6 +12,7 @@
         - git
         - wget
         - go
+        - telnet
 
 - name: Enable Nginx
   command: /usr/bin/amazon-linux-extras enable nginx1
@@ -55,7 +56,7 @@
     cmd: /usr/bin/go get -u -v github.com/gorilla/mux
     chdir: /home/ec2-user
 
-- name: Copy -- Overwrite the Server 1 consumer.go file
+- name: Copy -- Server 1 consumer.go 
   copy:
     src: consumer.go
     dest: /home/ec2-user/consumer.go
@@ -63,7 +64,7 @@
   notify:
     - Build Consumer Go Binary
 
-- name: Copy -- Overwrite the Server 2 consumer.go file
+- name: Copy -- Server 2 consumer.go 
   copy:
     src: /Users/manpreetsingh/desktop/go-kafka/consumer2.go
     dest: /home/ec2-user/consumer.go
@@ -71,7 +72,7 @@
   notify:
     - Build Consumer Go Binary
 
-- name: Copy -- Overwrite the Server 3 consumer.go file
+- name: Copy -- Server 3 consumer.go 
   copy:
     src: /Users/manpreetsingh/desktop/go-kafka/consumer.go
     dest: /home/ec2-user/consumer.go
@@ -79,7 +80,7 @@
   notify:
     - Build Consumer Go Binary
 
-- name: Copy -- the consumer servie file
+- name: Copy -- the consumer servie 
   copy:
     src: consumer.service
     dest: /etc/systemd/system/consumer.service

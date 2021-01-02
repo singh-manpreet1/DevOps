@@ -6,9 +6,18 @@
   become: yes
   become_user: root
 
-
-
 - name: Restart Zookeeper Service
   service:
     name: zookeeper
+    state: restarted
+
+
+- name: Restart Kafka Service
+  service:
+    name: kafka
+    state: restarted
+
+- name: Restart Producer Service
+  service:
+    name: producer
     state: restarted

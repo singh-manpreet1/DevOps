@@ -13,23 +13,8 @@
         - git
         - wget
         - go
+        - telnet
 
-- name: Stat - Check for Data File
-  stat:
-    path: /home/ec2-user/data.tsv
-  register: dataFile
-
-- name: Command - Download Data File
-  command: /usr/bin/wget https://datasets.imdbws.com/name.basics.tsv.gz
-  when: dataFile.stat.exists == False
-
-- name: Command - Extract Data File
-  command: /usr/bin/gzip -d /home/ec2-user/name.basics.tsv.gz
-  when: dataFile.stat.exists == False
-
-- name: Command - Rename Data File
-  command: /usr/bin/mv /home/ec2-user/name.basics.tsv /home/ec2-user/data.tsv
-  when: dataFile.stat.exists == False
 
 - name: Command - Enable Java Dependacy
   command: /usr/bin/amazon-linux-extras enable corretto8
@@ -39,57 +24,58 @@
     name: java-1.8.0-amazon-corretto
     state: present
 
-- name: File - Create Directory
-  file:
-    path: /home/ec2-user/kafka
-    state: directory
-
 - name: Stat - Kafka file
   stat:
-    path: /home/ec2-user/kafka/kafka_2.13-2.7.0.tgz
+    path: /home/ec2-user/kafka_2.13-2.7.0.tgz
   register: kafaFile
 
 - name: Get_Url - DownLoad Kafka
   get_url:
     url: https://mirror.olnevhost.net/pub/apache/kafka/2.7.0/kafka_2.13-2.7.0.tgz
-    dest: /home/ec2-user/kafka
+    dest: /home/ec2-user
   when: kafaFile.stat.exists == False
 
 - name: Command - Extract Kafka file
   command:
     cmd: /usr/bin/tar -xvf kafka_2.13-2.7.0.tgz
-    chdir: /home/ec2-user/kafka
+    chdir: /home/ec2-user
   when: kafaFile.stat.exists == False
 
+- name: Command -- Create the neccessary directory
+  command:
+    cmd: /usr/bin/mkdir -p data/kafka-data/zookeeper
+    chdir: /home/ec2-user/kafka_2.13-2.7.0/
 
-- name: Line_in_File - Change zookeeper Endpoint
+- name: Line_in_File -- Modifying the server.properties log.dirs
   lineinfile:
-    path: /home/ec2-user/kafka/kafka_2.13-2.7.0/config/server.properties
+    path: /home/ec2-user/kafka_2.13-2.7.0/config/server.properties
+    regexp: '^log.dirs='
+    line: log.dirs=/home/ec2-user/kafka_2.13-2.7.0/data/kafka
+  notify:
+    Restart Kafka Service
+
+
+- name: Line_in_File - zookeeper host string
+  lineinfile:
+    path: /home/ec2-user/kafka_2.13-2.7.0/config/server.properties
     regexp: '^zookeeper.connect='
     line: zookeeper.connect=10.12.2.110:2181
-
-- name: Copy - Copy Producer.go
-  copy:
-    src: producer.go
-    dest: /home/ec2-user/producer.go
-
-- name: Command - Go Libraries
-  command: /usr/bin/go get -v -u github.com/Shopify/sarama
-
-- name: Command - Build Producer go
-  command:
-    cmd: /usr/bin/go build producer.go
-    chdir: /home/ec2-user/
   notify:
-    - Restart Producer Service
+    - Restart Kafka Service
 
-- name: Copy -Producer Service
-  copy:
-    src: producer.service
-    dest: /etc/systemd/system/producer.service
+- name: Line_in_File -- Modifying the server.properties
+  lineinfile:
+    path: /home/ec2-user/kafka_2.13-2.7.0/config/server.properties
+    regexp: '^#listeners=PLAINTEXT'
+    line: listeners=PLAINTEXT://0.0.0.0:{{listener_num}}
   notify:
-    - Daemon Reload
-    - Restart Producer Service
+    - Restart Kafka Service
+
+- name: Line_in_File -- Broker Id for server
+  lineinfile:
+    path: /home/ec2-user/kafka_2.13-2.7.0/config/server.properties
+    regexp: '^broker.id=0'
+    line: broker.id={{broker_num}}
 
 - name: Copy - Kafka Service 
   copy:

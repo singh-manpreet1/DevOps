@@ -11,7 +11,7 @@ import (
 	"github.com/Shopify/sarama"
 )
 
-var brokers = []string{"127.0.0.1:9092"}
+var brokers = []string{"10.12.2.54:9092"}
 
 func main() {
 
@@ -28,7 +28,7 @@ func main() {
 	config.Producer.Return.Successes = true
 	sarama.Logger = log.New(os.Stdout, "[sarama] ", log.LstdFlags)
 
-	brokers := []string{"localhost:9092"}
+	brokers := []string{"10.12.2.54:9092"}
 	producer, err := sarama.NewSyncProducer(brokers, config)
 
 	if err != nil {
@@ -64,6 +64,7 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
+
 			buf.Reset()
 		}
 

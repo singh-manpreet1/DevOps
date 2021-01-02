@@ -13,3 +13,4 @@
             - git
             - wget
             - go
+            - telnet

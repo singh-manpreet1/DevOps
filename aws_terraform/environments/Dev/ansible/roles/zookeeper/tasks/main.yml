@@ -7,12 +7,15 @@
     state: latest
     update_only: yes
 
+
 - name: Yum - Install Dependency
   yum:
     name:
         - git
         - wget
         - go
+        - telnet
+
 
 - name: Command - Enable Java Dependency
   command: /usr/bin/amazon-linux-extras enable corretto8
@@ -22,27 +25,81 @@
     name: java-1.8.0-amazon-corretto
     state: present
 
-- name: Stat - Check for Kakfa
+- name: Stat -- Data File
   stat:
-    path: /home/ec2-user/kafka/kafka_2.13-2.7.0.tgz
+    path: /home/ec2-user/data.tsv
+  register: datafile
+
+- name: Stat -- check kafka File
+  stat:
+    path: /home/ec2-user/kafka_2.13-2.7.0.tgz
   register: kafkaFile
 
-- name: File - Create Directory
-  file:
-    path: /home/ec2-user/kafka
-    state: directory
-
-- name: Get_Url - Download kafka
+- name: Get_Url - DownLoad Kafka
   get_url:
     url: https://mirror.olnevhost.net/pub/apache/kafka/2.7.0/kafka_2.13-2.7.0.tgz
-    dest: /home/ec2-user/kafka
+    dest: /home/ec2-user
   when: kafkaFile.stat.exists == False
 
-- name: Command - Unzip kafka file
+- name: Command - Extract Kafka file
   command:
     cmd: /usr/bin/tar -xvf kafka_2.13-2.7.0.tgz
-    chdir: /home/ec2-user/kafka
+    chdir: /home/ec2-user
   when: kafkaFile.stat.exists == False
+
+- name: Command -- Create the neccessary directory
+  command:
+    cmd: /usr/bin/mkdir -p data/kafka-data/zookeeper
+    chdir: /home/ec2-user/kafka_2.13-2.7.0/
+
+- name: Line_in_File -- Modifying the zookeeper.properties
+  lineinfile:
+    path: /home/ec2-user/kafka_2.13-2.7.0/config/zookeeper.properties
+    regexp: '^dataDir='
+    line: dataDir=/home/ec2-user/kafka_2.13-2.7.0/data/zookeeper/
+
+- name: Line_in_File -- Modifying the server.properties
+  lineinfile:
+    path: /home/ec2-user/kafka_2.13-2.7.0/config/server.properties
+    regexp: '^log.dirs='
+    line: log.dirs=/home/ec2-user/kafka_2.13-2.7.0/data/kafka
+
+
+- name: Command -- Download data file
+  command: /usr/bin/wget https://datasets.imdbws.com/name.basics.tsv.gz
+  when: datafile.stat.exists == False
+
+- name: Command -- Unzip data file
+  command: /usr/bin/gzip -d /home/ec2-user/name.basics.tsv.gz
+  when: datafile.stat.exists == False
+
+- name: Command -- Rename the data file
+  command: /usr/bin/mv /home/ec2-user/name.basics.tsv /home/ec2-user/data.tsv
+  when: datafile.stat.exists == False
+
+
+- name: Copy - Producer go
+  copy:
+    src: producer.go
+    dest: /home/ec2-user/producer.go
+
+- name: Command -- Installing necessary go libraries
+  command: /usr/bin/go get github.com/Shopify/sarama
+
+- name: Command -- Build Go script
+  command:
+    cmd: /usr/bin/go build producer.go
+    chdir: /home/ec2-user/
+  notify:
+    - Restart Producer Service
+
+- name: Copy -- Producer Service 
+  copy:
+    src: producer.service
+    dest: /etc/systemd/system/producer.service
+  notify:
+    - Daemon Reload
+    - Restart Producer Service
 
 - name: Copy - Zookeeper Service
   copy:
@@ -52,4 +109,10 @@
     - Daemon Reload
     - Restart Zookeeper Service
 
-
+# - name: Copy -- Copying Kafka service file
+#   copy:
+#     src: kafka.service
+#     dest: /etc/systemd/system/kafka.service
+#   notify:
+#     - Daemon Reload
+#     - Restart Kafka Service
