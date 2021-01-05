@@ -28,7 +28,7 @@ func main() {
 	config.Producer.Return.Successes = true
 	sarama.Logger = log.New(os.Stdout, "[sarama] ", log.LstdFlags)
 
-	brokers := []string{"10.12.2.54:9092"}
+	brokers := []string{"10.12.2.54:9092", "10.12.2.165:9092"}
 	producer, err := sarama.NewSyncProducer(brokers, config)
 
 	if err != nil {

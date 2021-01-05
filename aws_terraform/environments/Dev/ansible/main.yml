@@ -15,18 +15,16 @@
     GOPATH: "/home/ec2-user/go"
   vars:
     broker_num: 1
-    listener_num: 9092
 
-# - hosts: kafka2
-#   become: yes
-#   become_user: root
-#   roles:
-#     - role: './roles/kafka/'
-#   environment:
-#     GOPATH: "/home/ec2-user/go"
-#   vars:
-#     broker_num: 2
-#     listener_num: 9094
+- hosts: kafka2
+  become: yes
+  become_user: root
+  roles:
+    - role: './roles/kafka/'
+  environment:
+    GOPATH: "/home/ec2-user/go"
+  vars:
+    broker_num: 2
 
 # - hosts: webserver1
 #   become: yes

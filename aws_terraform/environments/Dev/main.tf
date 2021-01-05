@@ -218,6 +218,16 @@ module "server_security_group_rule7" {
   source_security_group_id = module.Jumphost_security_group.security_group_id
 }
 
+module "server_security_group_rule8" {
+  source = "../../modules/security_group_rule"
+  type = "ingress"
+  from_port = 0
+  to_port = 65535
+  protocol = "all"
+  security_group_id = module.server_security_group.security_group_id
+  cidr_blocks = ["10.12.0.0/16"]
+}
+
 
 
 module "Jumphost_security_group" {

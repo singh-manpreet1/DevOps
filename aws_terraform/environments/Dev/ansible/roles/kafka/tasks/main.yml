@@ -52,7 +52,7 @@
     regexp: '^log.dirs='
     line: log.dirs=/home/ec2-user/kafka_2.13-2.7.0/data/kafka
   notify:
-    Restart Kafka Service
+    - Restart Kafka Service 
 
 
 - name: Line_in_File - zookeeper host string
@@ -61,15 +61,15 @@
     regexp: '^zookeeper.connect='
     line: zookeeper.connect=10.12.2.110:2181
   notify:
-    - Restart Kafka Service
+    - Restart Kafka Service 
 
-- name: Line_in_File -- Modifying the server.properties
+- name: Line_in_File -- server.properties
   lineinfile:
     path: /home/ec2-user/kafka_2.13-2.7.0/config/server.properties
     regexp: '^#listeners=PLAINTEXT'
-    line: listeners=PLAINTEXT://0.0.0.0:{{listener_num}}
+    line: listeners=PLAINTEXT://0.0.0.0:9092
   notify:
-    - Restart Kafka Service
+    - Restart Kafka Service 
 
 - name: Line_in_File -- Broker Id for server
   lineinfile:
@@ -77,12 +77,32 @@
     regexp: '^broker.id=0'
     line: broker.id={{broker_num}}
 
+
+- name: Line_in_File -- server.properties listeners
+  lineinfile:
+    path: /home/ec2-user/kafka_2.13-2.7.0/config/server.properties
+    regexp: '^advertised.listeners='
+    line: advertised.listeners=PLAINTEXT://10.12.2.54:9092
+  notify:
+    - Restart Kafka Service 
+  when: broker_num == 1
+
+- name: Line_in_File -- server.properties listeners
+  lineinfile:
+    path: /home/ec2-user/kafka_2.13-2.7.0/config/server.properties
+    regexp: '^advertised.listeners='
+    line: advertised.listeners=PLAINTEXT://10.12.2.165:9092
+  notify:
+    - Restart Kafka Service 
+  when: broker_num == 2
+
+
 - name: Copy - Kafka Service 
   copy:
     src: kafka.service
     dest: /etc/systemd/system/kafka.service
   notify:
     - Daemon Reload
-    - Restart kafka Service
+    - Restart Kafka Service 
 
 
