@@ -78,7 +78,7 @@
     line: broker.id={{broker_num}}
 
 
-- name: Line_in_File -- server.properties listeners
+- name: Line_in_File -- server.properties 
   lineinfile:
     path: /home/ec2-user/kafka_2.13-2.7.0/config/server.properties
     regexp: '^advertised.listeners='
@@ -87,7 +87,7 @@
     - Restart Kafka Service 
   when: broker_num == 1
 
-- name: Line_in_File -- server.properties listeners
+- name: Line_in_File -- server.properties 
   lineinfile:
     path: /home/ec2-user/kafka_2.13-2.7.0/config/server.properties
     regexp: '^advertised.listeners='
